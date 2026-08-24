@@ -133,9 +133,9 @@ std::string DeviceAuthResponse::get_prompt(const int qr_ecc = 0)
 {
     bool complete_url = !verification_uri_complete.empty();
     std::ostringstream prompt;
-    prompt << "Authenticate at\n-----------------\n"
+    prompt << "\nAuthenticate at\n-----------------\n"
            << (complete_url ? verification_uri_complete : verification_uri)
-           << "\n-----------------\n";
+           << "\n(⌘+Click (MacOS) or ctrl+Click (Linux/Win) to open in most terminals)\n-----------------\n";
     if (!complete_url)
     {
         prompt << "With code " << user_code
