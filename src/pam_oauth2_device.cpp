@@ -132,8 +132,9 @@ std::string getQr(const char *text, const int ecc = 0, const int border = 1)
 std::string DeviceAuthResponse::get_prompt(const int qr_ecc /* = 0 */)
 {
     const bool complete_url = !verification_uri_complete.empty();
+    const std::string code_info = "\n With code: " + user_code + "\n";
     const std::string& auth_url =
-        complete_url ? verification_uri_complete : verification_uri;
+        complete_url ? verification_uri_complete : verification_uri + code_info;
 
     std::ostringstream prompt;
 
@@ -143,21 +144,16 @@ std::string DeviceAuthResponse::get_prompt(const int qr_ecc /* = 0 */)
         prompt << "Scan the QR code to authenticate\n\n"
                << getQr(auth_url.c_str(), qr_ecc)
                << '\n'
-               << "Can't scan the QR code? Open the link below.\n"
+               << "Can't scan the QR code? Use the link below:\n"
+               << "-----------------\n";
+    } else {
+        prompt << "Authenticate at\n"
                << "-----------------\n";
     }
 
-    prompt << "Authenticate at\n"
+    prompt << auth_url << '\n'
+           << "(⌘+Click (MacOS) or ctrl+Click (Linux/Win) to open in most terminals)\n"
            << "-----------------\n"
-           << auth_url << '\n'
-           << "(⌘+Click (MacOS) or ctrl+Click (Linux/Win) to open in most terminals)\n";
-
-    if (!complete_url) {
-        prompt << "-----------------\n"
-               << "With code " << user_code << '\n';
-    }
-
-    prompt << "-----------------\n"
            << "Hit enter when you have finished authenticating\n";
 
     return prompt.str();
