@@ -129,32 +129,39 @@ std::string getQr(const char *text, const int ecc = 0, const int border = 1)
     return oss.str();
 }
 
-std::string DeviceAuthResponse::get_prompt(const int qr_ecc = 0)
+std::string DeviceAuthResponse::get_prompt(const int qr_ecc /* = 0 */)
 {
-    bool complete_url = !verification_uri_complete.empty();
+    const bool complete_url = !verification_uri_complete.empty();
+    const std::string& auth_url =
+        complete_url ? verification_uri_complete : verification_uri;
+
     std::ostringstream prompt;
-    prompt << "\nAuthenticate at\n-----------------\n"
-           << (complete_url ? verification_uri_complete : verification_uri)
-           << "\n(⌘+Click (MacOS) or ctrl+Click (Linux/Win) to open in most terminals)\n-----------------\n";
-    if (!complete_url)
-    {
-        prompt << "With code " << user_code
-               << "\n-----------------\n";
-    }
+
+    prompt << '\n';
 
     if (qr_ecc >= 0) {
-        prompt << "Or scan the QR code to authenticate with a mobile device"
-               << std::endl
-               << std::endl
-               << getQr((complete_url ? verification_uri_complete : verification_uri).c_str(), qr_ecc)
-               << std::endl
-               << "Hit enter when you have finished authenticating\n";
-    } else {
-        prompt << "Hit enter when you have finished authenticating\n";
+        prompt << "Scan the QR code to authenticate\n\n"
+               << getQr(auth_url.c_str(), qr_ecc)
+               << '\n'
+               << "Can't scan the QR code? Open the link below.\n"
+               << "-----------------\n";
     }
+
+    prompt << "Authenticate at\n"
+           << "-----------------\n"
+           << auth_url << '\n'
+           << "(⌘+Click (MacOS) or ctrl+Click (Linux/Win) to open in most terminals)\n";
+
+    if (!complete_url) {
+        prompt << "-----------------\n"
+               << "With code " << user_code << '\n';
+    }
+
+    prompt << "-----------------\n"
+           << "Hit enter when you have finished authenticating\n";
+
     return prompt.str();
 }
-
 
 void make_authorization_request(const Config &config,
                                 pam_oauth2_log &logger,
